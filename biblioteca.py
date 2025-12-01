@@ -113,8 +113,3 @@ def leggiBiblio(filename):
     return biblio, nSezioni
 
 main()
-
-if __name__ == "__main__":
-    main()
-
-
