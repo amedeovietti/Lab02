@@ -1,100 +1,120 @@
-def carica_da_file(file_path):
-    """Carica i libri dal file"""
-    # TODO
+from csv import DictReader
 
+def main ():
 
-def aggiungi_libro(biblioteca, titolo, autore, anno, pagine, sezione, file_path):
-    """Aggiunge un libro nella biblioteca"""
-    # TODO
-
-
-def cerca_libro(biblioteca, titolo):
-    """Cerca un libro nella biblioteca dato il titolo"""
-    # TODO
-
-
-def elenco_libri_sezione_per_titolo(biblioteca, sezione):
-    """Ordina i titoli di una data sezione della biblioteca in ordine alfabetico"""
-    # TODO
-
-
-def main():
-    biblioteca = []
-    file_path = "biblioteca.csv"
-
-    while True:
-        print("\n--- MENU BIBLIOTECA ---")
-        print("1. Carica biblioteca da file")
-        print("2. Aggiungi un nuovo libro")
-        print("3. Cerca un libro per titolo")
-        print("4. Ordina titoli di una sezione")
-        print("5. Esci")
-
-        scelta = input("Scegli un'opzione >> ").strip()
-
+    biblio, n = leggiBiblio("biblioteca.csv")
+    nSezioni = int(n)
+    scelta = menu()
+    while scelta != "5":
         if scelta == "1":
-            while True:
-                file_path = input("Inserisci il path del file da caricare: ").strip()
-                biblioteca = carica_da_file(file_path)
-                if biblioteca is not None:
-                    break
+            for libro in biblio :
+                for parametro in libro :
+                    print(libro[parametro], end = " ")
+                print(";")
+            print()
+        if scelta == "2":
+            aggiungiLibro(biblio, nSezioni, "biblioteca.csv")
+        if scelta == "3":
+            cerca = cercaLibro(biblio)
+            for parametro in cerca :
+                print(cerca[parametro], end = " ")
+            print(";")
+            print()
+        if scelta == "4":
+            lista = elencoSezione(biblio, nSezioni)
+            alfabetico = sorted(lista, key=lambda libro: libro["titolo"].lower())
+            for libro in alfabetico:
+                print(libro["titolo"], end = " ")
+                print(";")
+            print()
+        scelta = menu()
 
-        elif scelta == "2":
-            if not biblioteca:
-                print("Prima carica la biblioteca da file.")
-                continue
+def elencoSezione(biblio, nSezioni):
+    sezione = input(f"Inserire sezione tra le {nSezioni} presenti: ")
+    lista = []
+    if sezione.isdigit():
+        intSezione =int(sezione)
+    else :
+        print("sezione non numerica")
+        print()
+        return None
+    if int(sezione)<1 or int(sezione)>nSezioni:
+        print(f"sezione {sezione} non esistente")
+        print()
+        return None
+    for libro in biblio:
+        if int(libro["sezione"]) == intSezione:
+            lista.append(libro)
+    return lista
 
-            titolo = input("Titolo del libro: ").strip()
-            autore = input("Autore: ").strip()
-            try:
-                anno = int(input("Anno di pubblicazione: ").strip())
-                pagine = int(input("Numero di pagine: ").strip())
-                sezione = int(input("Sezione: ").strip())
-            except ValueError:
-                print("Errore: inserire valori numerici validi per anno, pagine e sezione.")
-                continue
+def cercaLibro(biblio):
+    cerca = input("Inserire il titolo del libro da cercare: ")
+    for libro in biblio:
+        if libro["titolo"].strip().lower() == cerca.lower():
+            return libro
+    return None
 
-            libro = aggiungi_libro(biblioteca, titolo, autore, anno, pagine, sezione, file_path)
-            if libro:
-                print(f"Libro aggiunto con successo!")
-            else:
-                print("Non è stato possibile aggiungere il libro.")
-
-        elif scelta == "3":
-            if not biblioteca:
-                print("La biblioteca è vuota.")
-                continue
-
-            titolo = input("Inserisci il titolo del libro da cercare: ").strip()
-            risultato = cerca_libro(biblioteca, titolo)
-            if risultato:
-                print(f"Libro trovato: {risultato}")
-            else:
-                print("Libro non trovato.")
-
-        elif scelta == "4":
-            if not biblioteca:
-                print("La biblioteca è vuota.")
-                continue
-
-            try:
-                sezione = int(input("Inserisci numero della sezione da ordinare: ").strip())
-            except ValueError:
-                print("Errore: inserire un valore numerico valido.")
-                continue
-
-            titoli = elenco_libri_sezione_per_titolo(biblioteca, sezione)
-            if titoli is not None:
-                print(f'\nSezione {sezione} ordinata:')
-                print("\n".join([f"- {titolo}" for titolo in titoli]))
-
-        elif scelta == "5":
-            print("Uscita dal programma...")
-            break
+def aggiungiLibro(biblio, nSezioni, filename):
+    titolo = input("Inserire il titolo del libro da aggiungere: ")
+    for libro in biblio:
+        if libro["titolo"].strip().lower() == titolo.lower():
+            print(f"{titolo} già presente")
+            print()
+            return None
         else:
-            print("Opzione non valida. Riprova.")
+            autore = input("Inserire autore: ")
+            anno = input("Inserire anno: ")
+            pagine = input("Inserire pagine: ") 
+            sezione = input("Inserire sezione: ")
+            if sezione.isdigit():
+                if int(sezione)<1 or int(sezione)>nSezioni:
+                    print(f"sezione {sezione} non esistente")
+                    print()
+                    return None
+                else :
+                    print(f"libro {titolo} aggiunto correttamente")
+                    print()
+                    biblio.append({'titolo':titolo,'autore':autore,'anno':anno,'pagine':pagine,'sezione':sezione})
+                    try :
+                        f = open(filename, "a", encoding = "utf-8")
+                    except OSError :
+                        print("file non trovato")
+                        print()
+                        return None
+                    f.write(f"{titolo},{autore},{anno},{pagine},{sezione}")
+                    f.close()
+                    return biblio
+            else :
+                print("la sezione inserita non è un carattere numerico")
+                print()
+                return None
 
+def menu():
+    print("1. Carica biblioteca da file")
+    print("2. Aggiungi un nuovo libro")
+    print("3. Cerca un libro per titolo")
+    print("4. Ordina titoli di una sezione")
+    print("5. Esci")
+    scelta = input("Scegli un'opzione (scrivere 1,2,3,4 o 5)>> ")
+    print()
+    return scelta
+
+def leggiBiblio(filename):
+    try :
+        fileIn = open(filename, "r", encoding = "utf-8")
+    except FileNotFoundError :
+        return None
+    nSezioni = fileIn.readline().strip()
+    biblio = []
+    reader = DictReader(fileIn,fieldnames=["titolo","autore","anno", "pagine", "sezione"])
+    for record in reader :
+        biblio.append(record)
+    fileIn.close()
+    return biblio, nSezioni
+
+main()
 
 if __name__ == "__main__":
     main()
+
 
